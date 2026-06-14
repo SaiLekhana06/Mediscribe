@@ -1,0 +1,45 @@
+# Module 4 — FastAPI Backend
+# Install: pip install -r requirements.txt
+# Also run: python -m spacy download en_core_web_lg
+# Requires: PostgreSQL running + .env file configured
+
+# Web framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# File handling
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# Environment
+python-dotenv>=1.0.0
+
+# --- All module dependencies (needed because pipeline imports them) ---
+
+# Module 1 — Whisper
+openai-whisper==20231117
+torch>=2.0.0
+torchaudio>=2.0.0
+pydub==0.25.1
+
+# Module 2 — Presidio
+presidio-analyzer==2.2.354
+presidio-anonymizer==2.2.354
+spacy>=3.5.0,<4.0.0
+
+# Module 3 — AI & RAG
+google-generativeai>=0.8.0
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+langchain>=0.1.0
+langchain-community>=0.0.20

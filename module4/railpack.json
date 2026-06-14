@@ -1,0 +1,6 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "envVars": {
+    "PIP_NO_BUILD_ISOLATION": "false"
+  }
+}

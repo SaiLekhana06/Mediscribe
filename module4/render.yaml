@@ -18,5 +18,4 @@ services:
         sync: false
       - key: AUDIO_UPLOAD_DIR
         value: ./uploaded_audio
-      - key: PYTHON_VERSION
-        value: "3.11.9"
+      

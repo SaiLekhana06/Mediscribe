@@ -1,0 +1,25 @@
+# Python cache
+**/__pycache__/
+**/*.py[cod]
+
+# Virtual environments
+**/venv/
+
+# Environment variables
+**/.env
+
+# Temporary uploaded/generated files
+**/uploaded_audio/
+
+# Test scripts
+**/test_*.py
+
+# Test audio files
+**/test_audio.ogg
+
+# VS Code
+.vscode/
+
+# Windows/macOS
+Thumbs.db
+.DS_Store

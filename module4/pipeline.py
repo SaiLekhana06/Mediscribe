@@ -15,7 +15,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from audio_pipeline import (
+    process_audio as m1_process,
+    load_whisper_model,
+)
 
+from anonymizer import (
+    process_transcript as m2_process,
+    create_engines,
+)
+
+from soap_generator import (
+    process_transcript as m3_process,
+    load_components,
+)
 
 # Global component storage
 # These are loaded once when the server starts

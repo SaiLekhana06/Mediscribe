@@ -12,6 +12,7 @@ module files actually are on your computer.
 import sys
 import os
 from dotenv import load_dotenv
+import requests 
 
 load_dotenv()
 
@@ -36,7 +37,6 @@ from soap_generator import (
 _whisper_model = None
 _presidio_engines = None
 _ai_components = None
-
 
 def initialize_all_components():
     """
@@ -155,3 +155,25 @@ def run_full_pipeline(audio_path: str, patient_code: str):
             "status": "error",
             "error":  f"Pipeline error: {str(e)}"
         }
+
+
+def submit_to_cloud(pipeline_result, patient_code, token, cloud_api_url):
+    """
+    After local pipeline finishes, send the SOAP note to cloud for storage.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "patient_code":          patient_code,
+        "transcript":            pipeline_result["transcript"],
+        "anonymous_transcript":  pipeline_result["anonymous_transcript"],
+        "soap":                  pipeline_result["soap"],
+        "confidence_scores":     pipeline_result["confidence_scores"],
+        "confidence_labels":     pipeline_result["confidence_labels"]
+    }
+    resp = requests.post(
+        f"{cloud_api_url}/api/submit-soap",
+        json=payload,
+        headers=headers,
+        timeout=30
+    )
+    return resp.json()

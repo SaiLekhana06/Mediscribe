@@ -5,20 +5,20 @@ Think of these as contracts — the API promises to always
 return data in exactly these shapes.
 """
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from datetime import datetime
 
 
 # ── Authentication ────────────────────────────────────────────
 class UserRegister(BaseModel):
-    email:     EmailStr
+    email:     str
     password:  str
     full_name: str
 
 
 class UserLogin(BaseModel):
-    email:    EmailStr
+    email:    str
     password: str
 
 

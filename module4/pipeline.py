@@ -137,8 +137,8 @@ def run_full_pipeline(audio_path: str, patient_code: str):
         
         print("Pipeline: SOAP generation complete.")
         
-        # ── STEP 4: Return everything ─────────────────────────
-        return {
+       # ── STEP 4: Build result ─────────────────────────
+        result = {
             "status":               "success",
             "transcript":           transcript,
             "anonymous_transcript": anonymous_transcript,
@@ -149,6 +149,43 @@ def run_full_pipeline(audio_path: str, patient_code: str):
             "confidence_scores":    m3_result["confidence_scores"],
             "confidence_labels":    m3_result["confidence_labels"],
         }
+
+# After successful local processing, submit to cloud database
+        try:
+            cloud_url = os.getenv("CLOUD_API_URL", "")
+            cloud_token = os.getenv("CLOUD_API_TOKEN", "")
+
+            if cloud_url and cloud_token:
+                headers = {"Authorization": f"Bearer {cloud_token}"}
+                payload = {
+                    "patient_code": patient_code,
+                    "transcript": result["transcript"],
+                    "anonymous_transcript": result["anonymous_transcript"],
+                    "soap": result["soap"],
+                    "confidence_scores": result["confidence_scores"],
+                    "confidence_labels": result["confidence_labels"]
+                }
+
+                cloud_resp = requests.post(
+                    f"{cloud_url}/api/submit-soap",
+                    json=payload,
+                    headers=headers,
+                    timeout=30
+                )
+
+                if cloud_resp.status_code == 200:
+                    cloud_data = cloud_resp.json()
+                    result["conversation_id"] = cloud_data.get("conversation_id")
+                    result["note_id"] = cloud_data.get("note_id")
+                    print("Pipeline: Submitted to cloud successfully")
+                else:
+                    print(f"Pipeline: Cloud submission failed - {cloud_resp.status_code}")
+
+        except Exception as e:
+            print(f"Pipeline: Cloud submission error - {str(e)}")
+    # Don't fail the whole pipeline if cloud submission fails
+
+        return result
     
     except Exception as e:
         return {

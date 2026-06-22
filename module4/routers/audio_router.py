@@ -29,6 +29,7 @@ router = APIRouter(prefix="/api", tags=["Audio"])
 async def upload_audio(
     file:         UploadFile = File(...),
     patient_code: str        = Form(...),
+    cloud_token:  str        = Form(default=""),
     db:           Session    = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -73,7 +74,7 @@ async def upload_audio(
         db.refresh(conversation)
         
         # Run the full pipeline
-        result = run_full_pipeline(audio_path, patient_code)
+        result = run_full_pipeline(audio_path, patient_code,cloud_token=cloud_token)
         
         # Delete audio file immediately after processing
         # Audio never stays on disk longer than needed

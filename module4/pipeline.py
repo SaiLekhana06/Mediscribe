@@ -57,7 +57,7 @@ def initialize_all_components():
     print("All components ready.")
 
 
-def run_full_pipeline(audio_path: str, patient_code: str):
+def run_full_pipeline(audio_path: str, patient_code: str, cloud_token: str = ""):
     """
     Runs the complete MediScribe pipeline for one consultation.
     
@@ -150,39 +150,49 @@ def run_full_pipeline(audio_path: str, patient_code: str):
             "confidence_labels":    m3_result["confidence_labels"],
         }
 
-# After successful local processing, submit to cloud database
-        try:
-            cloud_url = os.getenv("CLOUD_API_URL", "")
-            cloud_token = os.getenv("CLOUD_API_TOKEN", "")
+try:
+    cloud_url = os.getenv("CLOUD_API_URL", "")
 
-            if cloud_url and cloud_token:
-                headers = {"Authorization": f"Bearer {cloud_token}"}
-                payload = {
-                    "patient_code": patient_code,
-                    "transcript": result["transcript"],
-                    "anonymous_transcript": result["anonymous_transcript"],
-                    "soap": result["soap"],
-                    "confidence_scores": result["confidence_scores"],
-                    "confidence_labels": result["confidence_labels"]
-                }
+    # Use token passed from Streamlit, otherwise fall back to .env
+    token_to_use = cloud_token or os.getenv("CLOUD_API_TOKEN", "")
 
-                cloud_resp = requests.post(
-                    f"{cloud_url}/api/submit-soap",
-                    json=payload,
-                    headers=headers,
-                    timeout=30
-                )
+    if cloud_url and token_to_use:
+        headers = {"Authorization": f"Bearer {token_to_use}"}
 
-                if cloud_resp.status_code == 200:
-                    cloud_data = cloud_resp.json()
-                    result["conversation_id"] = cloud_data.get("conversation_id")
-                    result["note_id"] = cloud_data.get("note_id")
-                    print("Pipeline: Submitted to cloud successfully")
-                else:
-                    print(f"Pipeline: Cloud submission failed - {cloud_resp.status_code}")
+        payload = {
+            "patient_code": patient_code,
+            "transcript": result["transcript"],
+            "anonymous_transcript": result["anonymous_transcript"],
+            "soap": result["soap"],
+            "confidence_scores": result["confidence_scores"],
+            "confidence_labels": result["confidence_labels"],
+        }
 
-        except Exception as e:
-            print(f"Pipeline: Cloud submission error - {str(e)}")
+        cloud_resp = requests.post(
+            f"{cloud_url}/api/submit-soap",
+            json=payload,
+            headers=headers,
+            timeout=30,
+        )
+
+        if cloud_resp.status_code == 200:
+            cloud_data = cloud_resp.json()
+            result["conversation_id"] = cloud_data["conversation_id"]
+            result["note_id"] = cloud_data["note_id"]
+            print("Pipeline: Submitted to cloud successfully")
+
+        elif cloud_resp.status_code == 401:
+            print("Pipeline: Cloud token expired or invalid — note saved locally only")
+
+        else:
+            print(f"Pipeline: Cloud submission failed — {cloud_resp.status_code}")
+
+    else:
+        print("Pipeline: No cloud URL configured — skipping cloud submission")
+
+except Exception as e:
+    print(f"Pipeline: Cloud submission error — {str(e)}")
+    # Never fail the whole pipeline because of cloud submission
     # Don't fail the whole pipeline if cloud submission fails
 
         return result

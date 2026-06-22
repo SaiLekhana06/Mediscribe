@@ -1010,6 +1010,7 @@ def page_upload():
             },
             data={
                 "patient_code": patient_code
+                "cloud_token": st.session_state.token
             },
             files=files,
             timeout=300

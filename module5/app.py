@@ -1009,7 +1009,7 @@ def page_upload():
                 "Authorization": f"Bearer {st.session_state.token}"
             },
             data={
-                "patient_code": patient_code
+                "patient_code": patient_code,
                 "cloud_token": st.session_state.token
             },
             files=files,

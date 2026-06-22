@@ -13,7 +13,9 @@ import streamlit as st
 import requests
 from datetime import datetime, timezone
 
-API_BASE = "http://localhost:8000"
+LOCAL_API  = "http://localhost:8000"   # audio processing
+CLOUD_API  = "https://mediscribe-api-production-ebed.up.railway.app"
+API_BASE   = CLOUD_API  # default for auth, history, notes
 
 # ── Page config ───────────────────────────────────────────────
 st.set_page_config(
@@ -991,8 +993,30 @@ def page_upload():
         status_el.info("Step 1/4 — Transcribing audio locally with Whisper...")
         prog.progress(15)
 
-        files = {"file": (audio_file.name, audio_file.getvalue(), audio_file.type)}
-        resp, code = _post("/api/upload-audio", data={"patient_code": patient_code}, files=files)
+        files = {
+            "file": (
+                audio_file.name,
+                audio_file.getvalue(),
+                audio_file.type
+            )
+        }
+
+    
+
+        r = requests.post(
+            f"{LOCAL_API}/api/upload-audio",
+            headers={
+                "Authorization": f"Bearer {st.session_state.token}"
+            },
+            data={
+                "patient_code": patient_code
+            },
+            files=files,
+            timeout=300
+        )
+
+        resp = r.json()
+        code = r.status_code
 
         prog.progress(90)
 
@@ -1351,4 +1375,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
